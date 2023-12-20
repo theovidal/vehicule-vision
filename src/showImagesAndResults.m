@@ -13,6 +13,7 @@ function [] = showImagesAndResults(start, stop, directory)
         if autoplay && i < stop
             controlAutoPlay(h, directory, files(i,1));
             i=i+1;
+            pause(1/60)
         else
             pause(1/100)
         end
@@ -47,9 +48,30 @@ function [] = controlAutoPlay(h, directory, file)
 end
 
 function [] = showImage(h, directory, file)
+    boxSize=80;
+
     h=figure(h);
     imagePath=sprintf('%s/%s', directory, file.name);
  
+    %subplot(1,3,1)
+    axis off
+    axis equal
     image=imread(imagePath);
-    imagesc(image);
+    rgb=deformatImages(image);
+    imagesc(rgb);
+
+    %subplot(1,3,2)
+    lab = RGB2LABImage(rgb);
+    %imagesc(lab);
+
+    %subplot(1,3,3)
+    rgyb = LAB2RGYBImage(lab);
+    %imagesc(rgyb);
+    
+    %subplot(1,3,1)
+    [x, y, maxVals] = detectMaxima(rgyb, 5, boxSize)
+    s=size(maxVals)
+    for i=1:s(2)
+        rectangle('Position', [x(i) - boxSize/2, y(i) - boxSize/2, boxSize, boxSize], 'EdgeColor', 'r', 'LineWidth', 4);
+    end
 end
