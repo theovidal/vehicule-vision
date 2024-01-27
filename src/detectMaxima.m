@@ -1,10 +1,13 @@
-function [x, y, maxVals] = detectMaxima(RGYB, nrMaxima, boxSize)
+% Detect nrMaxima maximas in a RGYB image, so the nrMaxima red points of
+% maximum intensity, and isolate a zone of (2*boxSize) * (2*boxSize) around
+% them
+function [x, y, maxVals] = detectMaxima(RGYB, nrMaxima, boxSize, xMin, xMax, yMin, yMax)
     maxVals = [];
     x = [];
     y = [];
-    rgybedit = RGYB;
+    rgybedit = RGYB(xMin:xMax, yMin:yMax);
 
-    [size_x, size_y] = size(RGYB);
+    [size_x, size_y] = size(rgybedit);
 
     for i=1:nrMaxima
         [M, I] = max(rgybedit, [], "all", "linear");

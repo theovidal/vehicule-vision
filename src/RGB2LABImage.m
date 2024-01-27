@@ -1,3 +1,4 @@
+% Convert color space of an image from RGB to LAB
 function lab = RGB2LABImage(rgb)
     rgbl = RGBs2RGBLinearImage(rgb);
     xyz = RGBLinear2XYZImage(rgbl);
@@ -7,7 +8,7 @@ end
 
 function rgb = RGBs2RGBLinearImage(rgb)
     T = 0.04045;
-    rgb(rgb <T) = rgb(rgb <T)/12.92; 
+    rgb(rgb < T) = rgb(rgb <T)/12.92; 
     rgb(rgb >= T) = ((rgb(rgb >= T)+0.055)/1.055).^ 2.4;
 end
 
@@ -39,7 +40,7 @@ end
 function nonlinearity = f(M)
     threshold = (6/29)^3;
 
-    M(M > threshold) = M(M >(6/29)^3) .^ (1/3);
+    M(M > threshold) = M(M > (6/29)^3) .^ (1/3);
     M(M <= threshold) = 7.787 * M(M <= (6/29)^3) + (16/116)*ones(size(M(M <= (6/29)^3)));
     
     nonlinearity = M;

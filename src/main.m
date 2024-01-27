@@ -1,4 +1,27 @@
 clear all; close all; clc;
 
-showImagesAndResults(1, 11179, 'assets/jpg-sequences', 3)
+% This structure contains all the parameters the user can adjust for the
+% detection and filters
+params=struct( ...
+    'plotIntermediary', 'on', ... % Option to plot the "computer vision", displaying the color space and intermediary maximas
+    'nrMaxima', 6, ... % Initial number of maximas to search for, before filtering
+    'boxSize', 60, ... % Dimension of the box in which only a single maxima can be
+    ... % Filter type : apply detection in a specific portion of the screen
+    'xMin', 1, ...
+    'xMax', 200, ...
+    'yMin', 1, ...
+    'yMax', 640, ...
+    ... % Filter type : match traffic lights as circles
+    'circleMinRadius', 15, ...
+    'circleMaxRadius', 30, ...
+    ... % Filter type : only keep maximas that are superior to a threshold
+    'detectionThreshold', 7000 ...
+    )
 
+daySequenceNumImages = 11179
+daySequencePath = 'assets/day-sequence'
+
+nightSequenceNumImages = 9001
+nightSequencePath = 'assets/night-sequence'
+
+showImagesAndResults(daySequenceNumImages, 4000, daySequenceNumImages, daySequencePath, params)
