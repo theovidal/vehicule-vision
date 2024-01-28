@@ -1,4 +1,4 @@
-function [] = showImagesAndResults(numImages, start, stop, directory, params)
+function [] = showImagesAndResults(start, stop, directory, params)
     files=dir(directory);
        
     % We want to skip the two listed directories "." (current) and ".." (previous)
@@ -9,8 +9,8 @@ function [] = showImagesAndResults(numImages, start, stop, directory, params)
     % We use these matrixes to store the coordinates of the maxima between
     % images, so we don't need to calculate them each time
     % and we can process them in between
-    xboxed=zeros(1,1);
-    yboxed=zeros(1,1);
+    xsaved=zeros(1,1);
+    ysaved=zeros(1,1);
 
     h=figure('KeyPressFcn', @KeyPressCb);
     axis off;
@@ -19,7 +19,7 @@ function [] = showImagesAndResults(numImages, start, stop, directory, params)
     while true
         if autoplay
             if i < stop
-                [xboxed, yboxed]=controlAutoPlay(h, directory, files(i,1), i, params, xboxed, yboxed);
+                [xsaved, ysaved]=controlAutoPlay(h, directory, files(i,1), i, params, xsaved, ysaved);
                 i=i+1;
             else
                 autoplay = false;
@@ -33,66 +33,31 @@ function [] = showImagesAndResults(numImages, start, stop, directory, params)
         if strcmp(event.Key, 'space')
             autoplay = ~autoplay;
         else
-            [i, xboxed, yboxed]=controlKeyInput(h, directory, files, i, params, xboxed, yboxed, event, numImages);
+            [i, xsaved, ysaved]=controlKeyInput(h, directory, files, i, params, xsaved, ysaved, event);
         end
     end
 end
 
-function [new_i, xpassed, ypassed] = controlKeyInput(h, directory, files, index, params, xboxed, yboxed, event, numImages)
+function [new_i, xpassed, ypassed] = controlKeyInput(h, directory, files, index, params, xsaved, ysaved, event)
     % By default we don't change anything, except if a control key (right
     % or left arrow) is pressed
-    xpassed=xboxed;
-    ypassed=yboxed;
+    xpassed=xsaved;
+    ypassed=ysaved;
     new_i = index;
+
+    [numFiles, ~] = size(files);
+    numImages = numFiles - 2;
 
     % We add 2 to the indices refering to files, in order to skip "." and ".." directories
     if strcmp(event.Key, 'rightarrow') && index < numImages + 2
         new_i = index + 1;
-        [xpassed, ypassed]=showImage(h, directory, files(index,1), index, params, xboxed, yboxed)
+        [xpassed, ypassed]=computeDetection(h, directory, files(index,1), index, params, xsaved, ysaved)
     elseif strcmp(event.Key, 'leftarrow') && index > 2
         new_i = index - 1;
-        [xpassed, ypassed]=showImage(h, directory, files(index,1), index, params, xboxed, yboxed);
+        [xpassed, ypassed]=computeDetection(h, directory, files(index,1), index, params, xsaved, ysaved);
     end
 end
 
-function [xpassed, ypassed] = controlAutoPlay(h, directory, file, index, params, xboxed, yboxed)
-    [xpassed, ypassed]=showImage(h, directory, file, index, params, xboxed, yboxed);
-end
-
-function [xpassed, ypassed] = showImage(h, directory, file, index, params, xboxed, yboxed)
-    imagePath=sprintf('%s/%s', directory, file.name);
- 
-    h=figure(h);
-    imageData=imread(imagePath);
-    rgb=deformatImages(imageData);
-
-    % We calculate new maxima every four images, so this bitwise operation
-    % is equivalent to testing if index mod 4 == 3
-    if (bitand(index, 11) == 0)
-        lab = RGB2LABImage(rgb);
-        rgyb = LAB2RGYBImage(lab);
-        imagesc(rgyb);
-        [y, x, maxVals] = detectMaxima(rgyb, params.nrMaxima, params.boxSize, params.xMin, params.xMax, params.yMin, params.yMax);
-        [xpassed, ypassed] = filterDetections(rgyb, x, y, maxVals, params);
-    else
-        xpassed = xboxed;
-        ypassed = yboxed;
-    end
-
-    % If the user wanted to plot intermediary calculation, we now need to
-    % place the final results in the first subplot
-    if params.plotIntermediary == 'on'
-        subplot(2,1,1);
-    end
-    
-    imagesc(rgb);
-
-    [~, nbPassed] = size(xpassed);
-    for i=1:nbPassed
-        rectangle( ...
-            'Position', [xpassed(i) - params.boxSize/2, ypassed(i) - params.boxSize/2, params.boxSize, params.boxSize], ...
-            'EdgeColor', 'r', ...
-            'LineWidth', 4 ...
-        );
-    end
+function [xpassed, ypassed] = controlAutoPlay(h, directory, file, index, params, xsaved, ysaved)
+    [xpassed, ypassed]=computeDetection(h, directory, file, index, params, xsaved, ysaved);
 end
