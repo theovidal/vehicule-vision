@@ -1,7 +1,9 @@
 % Filter the points found as maxima by the detectMaxima function
 function [xpassed, ypassed] = filterDetections(rgyb, x, y, maxima, params)
     [xpassed, ypassed] = filterDetectionsThreshold(x, y, maxima, params);
-    [xpassed, ypassed] = filterDetectionsShape(rgyb, xpassed, ypassed, params);
+    if strcmp(params.circleDetection, 'on')
+        [xpassed, ypassed] = filterDetectionsShape(rgyb, xpassed, ypassed, params);
+    end
 end
 
 % Filter all maxima which underlying value exceeds the threshold
@@ -24,7 +26,7 @@ function [xpassed, ypassed] = filterDetectionsShape(rgyb, x, y, params)
 
     % If the user wants to, we plot the dilated image and the maxima
     % previously found (before applying this filter)
-    if params.plotIntermediary == 'on'
+    if strcmp(params.plotIntermediary, 'on')
         plotMaximas(dilatedI, x, y, params);
     end
 
@@ -34,7 +36,7 @@ function [xpassed, ypassed] = filterDetectionsShape(rgyb, x, y, params)
     if nb > 0
         % If the user wants to, we plot all the circles we found (as
         % rectangles so it's quicker to display)
-        if params.plotIntermediary == 'on'
+        if strcmp(params.plotIntermediary, 'on')
             plotCircles(centers, radii);
         end
 
@@ -50,11 +52,14 @@ function [xpassed, ypassed] = filterDetectionsShape(rgyb, x, y, params)
 end
 
 function [] = plotMaximas(dilatedI, x, y, params)
-    subplot(1,2,2)
-    axis off
+    % Here we assume the user effectively wanted to plot intermediary
+    % results (otherwise the function wouldn't have been called in the
+    % first place
     axis equal
     imagesc(dilatedI)
     [~, nbInitial] = size(x);
+
+    % Print all the maximas detecter by the detectMaxima function
     for i=1:nbInitial
         rectangle( ...
             'Position', [x(i) - params.boxSize/2, y(i) - params.boxSize/2, params.boxSize, params.boxSize], ...
@@ -65,6 +70,8 @@ end
 
 function [] = plotCircles(centers, radii)
     [nb, ~]=size(centers);
+
+    % Plot all the circles identified by the filterDetectionsShape function
     for i = 1:nb(1)
         rectangle('Position', [centers(i,1) - radii(i)/2, centers(i,2)-radii(i)/2, radii(i), radii(i)], ...
             'EdgeColor', 'b', ...
