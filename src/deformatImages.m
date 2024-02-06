@@ -5,5 +5,4 @@ function newImg = deformatImages(img)
     newImg = double(img); %convert from uint8 (or any other format) to double;
     newImg = newImg - min(newImg(:)); % make the minimum value of the image zero
     newImg = newImg/max(newImg(:)); %make the maximum value of the image 1;
-
 end

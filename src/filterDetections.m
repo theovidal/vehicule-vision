@@ -1,7 +1,13 @@
 % Filter the points found as maxima by the detectMaxima function
+% If the user wants to, the function also plots the intermediary results as
+% described by the 'plotIntermediary' parameter
 function [xpassed, ypassed] = filterDetections(rgyb, x, y, maxima, params)
-    [xpassed, ypassed] = filterDetectionsThreshold(x, y, maxima, params);
-    if strcmp(params.circleDetection, 'on')
+    xpassed = x;
+    ypassed = y;
+    if strcmp(params.filterThreshold, 'on')
+        [xpassed, ypassed] = filterDetectionsThreshold(x, y, maxima, params);
+    end
+    if strcmp(params.filterCircle, 'on')
         [xpassed, ypassed] = filterDetectionsShape(rgyb, xpassed, ypassed, params);
     end
 end
@@ -22,24 +28,12 @@ function [xpassed, ypassed] = filterDetectionsShape(rgyb, x, y, params)
     % Apply dilatation to the image so the red maxima are now "blobs" that
     % are much easier to analyse
     se = offsetstrel('ball', params.dilatationRadius, params.dilatationHeight);
-    dilatedI = imdilate(rgyb,se);
-
-    % If the user wants to, we plot the dilated image and the maxima
-    % previously found (before applying this filter)
-    if strcmp(params.plotIntermediary, 'on')
-        plotMaximas(dilatedI, x, y, params);
-    end
+    dilatedI = imdilate(rgyb, se);
 
     % Using the Image Processing Toolbox to find circles
     [centers, radii] = imfindcircles(dilatedI,[params.circleMinRadius, params.circleMaxRadius],"ObjectPolarity","bright");
     [nb, ~]=size(centers);
     if nb > 0
-        % If the user wants to, we plot all the circles we found (as
-        % rectangles so it's quicker to display)
-        if strcmp(params.plotIntermediary, 'on')
-            plotCircles(centers, radii);
-        end
-
         xCenters = floor(centers(:, 1));
         yCenters = floor(centers(:, 2));
         for i=1:nb(1)
@@ -49,32 +43,13 @@ function [xpassed, ypassed] = filterDetectionsShape(rgyb, x, y, params)
             ypassed = [ypassed, y(indices)];
         end
     end
-end
 
-function [] = plotMaximas(dilatedI, x, y, params)
-    % Here we assume the user effectively wanted to plot intermediary
-    % results (otherwise the function wouldn't have been called in the
-    % first place
-    axis equal
-    imagesc(dilatedI)
-    [~, nbInitial] = size(x);
-
-    % Print all the maximas detecter by the detectMaxima function
-    for i=1:nbInitial
-        rectangle( ...
-            'Position', [x(i) - params.boxSize/2, y(i) - params.boxSize/2, params.boxSize, params.boxSize], ...
-            'EdgeColor', 'g', ...
-            'LineWidth', 4);
-    end
-end
-
-function [] = plotCircles(centers, radii)
-    [nb, ~]=size(centers);
-
-    % Plot all the circles identified by the filterDetectionsShape function
-    for i = 1:nb(1)
-        rectangle('Position', [centers(i,1) - radii(i)/2, centers(i,2)-radii(i)/2, radii(i), radii(i)], ...
-            'EdgeColor', 'b', ...
-            'LineWidth', 4);
+    % If the user wants to, we plot the dilated image and the maxima
+    % previously found (before applying this filter)
+    % We have to do it at the end of this function since the RGYB image
+    % must be plotted before the rectangles (otherwise they'll be hidden
+    % behind)
+    if strcmp(params.plotIntermediary, 'on')
+        showIntermediaryImageAndCircles(dilatedI, x, y, centers, radii, params);
     end
 end

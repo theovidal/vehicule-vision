@@ -15,15 +15,15 @@ function [hsv] = RGB2HSVImage(rgb)
     h = zeros(width, height);
     h(maxValue == minValue) = 0;
 
-    redAssign = mod(60 * (g - b) ./ (maxValue - minValue), 360);
+    redAssign = 60 * mod((g - b) ./ (maxValue - minValue), 6);
     redIndexes = maxValue == r;
     h(redIndexes) = redAssign(redIndexes);
 
-    greenAssign = mod(60 * (b - r) ./ (maxValue - minValue), 120);
+    greenAssign = 60 * (2 + (b - r) ./ (maxValue - minValue));
     greenIndexes = maxValue == g;
     h(greenIndexes) = greenAssign(greenIndexes);
 
-    blueAssign = mod(60 * (r - g) ./ (maxValue - minValue), 240);
+    blueAssign = 60 * (4 + (r - g) ./ (maxValue - minValue));
     blueIndexes = maxValue == b;
     h(blueIndexes) = blueAssign(blueIndexes);
 

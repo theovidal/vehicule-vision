@@ -1,4 +1,4 @@
-function [] = showImagesAndResults(start, stop, directory, params)
+function [] = controlVideoPlayback(start, stop, directory, params)
     files=dir(directory);
        
     % We want to skip the two listed directories "." (current) and ".." (previous)
@@ -51,13 +51,19 @@ function [new_i, xpassed, ypassed] = controlKeyInput(h, directory, files, index,
     % We add 2 to the indices refering to files, in order to skip "." and ".." directories
     if strcmp(event.Key, 'rightarrow') && index < numImages + 2
         new_i = index + 1;
-        [xpassed, ypassed]=computeDetection(h, directory, files(index,1), index, params, xsaved, ysaved)
+        [xpassed, ypassed] = computeDetection(h, directory, files(index,1), index, params, xsaved, ysaved)
     elseif strcmp(event.Key, 'leftarrow') && index > 2
         new_i = index - 1;
-        [xpassed, ypassed]=computeDetection(h, directory, files(index,1), index, params, xsaved, ysaved);
+        [xpassed, ypassed] = computeDetection(h, directory, files(index,1), index, params, xsaved, ysaved);
     end
 end
 
 function [xpassed, ypassed] = controlAutoPlay(h, directory, file, index, params, xsaved, ysaved)
     [xpassed, ypassed]=computeDetection(h, directory, file, index, params, xsaved, ysaved);
+
+    % If autoplay is enabled, we have to pause for a while so MATLAB can
+    % register key events (space / right arrow / left arrow)
+    if strcmp(params.controlAutoPlay, 'on')
+        pause(1/30);
+    end
 end

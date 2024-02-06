@@ -1,12 +1,17 @@
-function [x, y, maxVals] = detectGreenMaxima(hsv, nrMaxima, boxSize)
-    % Green : 75-140 ; 0-100 ; 70-100
-    [originalX, originalY, ~] = size(hsv)
-    
-    indexes = hsv(:,:,1) >= 75 & hsv(:,:,1) <= 140 & hsv(:,:,3) > 70;
+% EXPERIMENTAL - Detect the maxima of green in the HSV color space
+% Doesn't work as expected, the values surely needs to be tweaked
+
+function [x, y, maxVals] = detectGreenMaxima(hsv, nrMaxima, boxSize, xMin, xMax, yMin, yMax)
+    % Green : 75-140 ; 70-100 ; 70-100
+    %hsv=hsv(xMin:xMax, yMin:yMax);
+
+    hueIndexes = hsv(:,:,1) >= 75/360 & hsv(:,:,1) <= 140/360;
+    saturationIndexes = hsv(:,:,2) >= 60/100;
+    valueIndexes = hsv(:,:,3) >= 60/100;
 
     hsvEdit = hsv(:,:,3);
 
-    values = hsvEdit .* indexes;
+    values = hsvEdit .* hueIndexes .* saturationIndexes .* valueIndexes;
     [size_x, size_y] = size(values);
 
     x=[];
